@@ -1,0 +1,13 @@
+[workspace]
+members = [
+    "qsp",
+    "qsp-derive",
+]
+
+[package]
+name = "qsp-crc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+qsp = { path = "qsp", features = ["derive"] }

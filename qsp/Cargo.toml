@@ -1,0 +1,10 @@
+[package]
+name = "qsp"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+derive = ["dep:qsp-derive"]
+
+[dependencies]
+qsp-derive = { path = "../qsp-derive", optional = true }
