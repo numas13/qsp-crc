@@ -11,6 +11,18 @@ pub unsafe trait Packed: Sized {
     }
 }
 
+macro_rules! impl_packed_for_basic_types {
+    ($($t:ty),* $(,)?) => {
+        $(
+            unsafe impl Packed for $t {}
+        )*
+    };
+}
+
+impl_packed_for_basic_types!(u8, u16, u32, u64, u128, usize);
+impl_packed_for_basic_types!(i8, i16, i32, i64, i128, isize);
+impl_packed_for_basic_types!(f32, f64);
+
 impl<T: Packed> Crc for T {
     fn crc<S: CrcState>(&self, state: &mut S) {
         state.write(self.as_bytes());
@@ -37,22 +49,6 @@ pub trait Crc {
         }
     }
 }
-
-macro_rules! impl_crc_for_basic_types {
-    ($($t:ty),* $(,)?) => {
-        $(
-            impl Crc for $t {
-                fn crc<S: CrcState>(&self, state: &mut S) {
-                    state.write(&self.to_ne_bytes());
-                }
-            }
-        )*
-    };
-}
-
-impl_crc_for_basic_types!(u8, u16, u32, u64, u128, usize);
-impl_crc_for_basic_types!(i8, i16, i32, i64, i128, isize);
-impl_crc_for_basic_types!(f32, f64);
 
 macro_rules! impl_crc_tuple {
     ($($t:ident: $n:tt),+ $(,)?) => {

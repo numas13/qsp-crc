@@ -103,12 +103,33 @@ fn has_repr_packed(attrs: &[Attribute]) -> Result<bool, Error> {
     Ok(false)
 }
 
+fn make_where_clause_for_fields(
+    data: &Data,
+    generics: &Generics,
+    bound: TypeParamBound,
+) -> Result<Generics, Error> {
+    match &data {
+        Data::Struct(data) => {
+            let mut ret = generics.clone();
+            let predicates = &mut ret.make_where_clause().predicates;
+            predicates.extend(
+                data.fields
+                    .iter()
+                    .map(|i| make_where_predicate_type(i.ty.clone(), bound.clone())),
+            );
+            Ok(ret)
+        }
+        _ => Err("derive Crc for enum or union is not supported".into()),
+    }
+}
+
 fn make_impl_packed(input: &DeriveInput) -> Result<TokenStream, Error> {
     let name = &input.ident;
     if !has_repr_packed(&input.attrs)? {
         return Err(format!("missing repr(packed) for struct {name}"));
     }
-    let generics = make_generic_bounds(&input.generics, parse_quote!(qsp::Crc));
+    let generics =
+        make_where_clause_for_fields(&input.data, &input.generics, parse_quote!(qsp::Packed))?;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let impl_tokens = quote! {
         unsafe impl #impl_generics qsp::Packed for #name #ty_generics #where_clause {}
